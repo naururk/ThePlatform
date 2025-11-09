@@ -24,9 +24,12 @@
     "hardhat"
   ],
   "dependencies": {
-    "encrypted-types": "^0.0.4",
     "@fhevm/solidity": "^0.7.0",
-    "@zama-fhe/oracle-solidity": "^0.1.0"
+    "@zama-fhe/oracle-solidity": "^0.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "encrypted-types": "^0.0.4",
+    "express": "^4.21.2"
   },
   "devDependencies": {
     "@fhevm/hardhat-plugin": "^0.0.1-6",
@@ -41,7 +44,7 @@
     "@types/node": "^20.19.8",
     "@typescript-eslint/eslint-plugin": "^8.37.0",
     "@typescript-eslint/parser": "^8.37.0",
-    "@zama-fhe/relayer-sdk": "^0.1.2",
+    "@zama-fhe/relayer-sdk": "^0.2.0",
     "chai": "^4.5.0",
     "chai-as-promised": "^8.0.1",
     "cross-env": "^7.0.3",

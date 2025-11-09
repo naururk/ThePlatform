@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin" />
+  <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp" />
+  <title>Quality Vault · Zama FHEVM</title>
+  <style>
+    :root{
+      --bg:#0b0d12; --ink:#e6edf7; --muted:#9fb2ce; --line:#162136; --panel:#0f1420; --glass:rgba(255,255,255,.06);
+      --blue:#76a9fa; --cyan:#67e8f9; --mint:#34d399; --rose:#fb7185; --amber:#fbbf24;
+      --r:18px; --shadow:0 24px 80px rgba(0,0,0,.5);
+      --sans:"Sora", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      --mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:
+      radial-gradient(900px 700px at -10% -10%, rgba(118,169,250,.16), transparent 60%),
+      radial-gradient(900px 700px at 110% 0%, rgba(103,232,249,.12), transparent 60%),
+      linear-gradient(180deg,#0b0d12,#0b1017 60%,#0d121a);
+      color:var(--ink);font-family:var(--sans)}
+
+    /* Topbar */
+    .top{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);background:rgba(13,18,26,.8);backdrop-filter:blur(10px)}
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font:800 13px var(--mono);background:conic-gradient(from 210deg, #93c5fd, #5eead4, #e9d5ff)}
+    .tabs{display:flex;gap:6px}
+    .tab{border:1px solid var(--line);padding:8px 12px;border-radius:999px;background:linear-gradient(180deg,#121a2a,#0e1523);cursor:pointer;font-weight:800}
+    .tab.active{border-color:#2458b8;box-shadow: inset 0 0 0 1px #1d4ed8;color:#c3dafe}
+
+    /* Canvas */
+    .wrap{max-width:1200px;margin:20px auto;padding:0 18px}
+    .grid{display:grid;grid-template-columns:1fr 420px;gap:18px}
+    @media (max-width: 1100px){.grid{grid-template-columns:1fr}}
+
+    .panel{background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+    .panel h2{margin:0 0 8px;font-size:18px}
+
+    /* Wizard */
+    .wizard{padding:16px}
+    .steps{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+    .step{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px dashed var(--line);border-radius:12px;background:#0b121a;font:800 12px var(--mono);opacity:.75}
+    .step.on{border-color:#1d4ed8;opacity:1}
+
+    .card{border:1px solid var(--line);border-radius:16px;padding:14px;background:#0b121a}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+    label{display:block;font:800 10px var(--sans);color:#bfd7ff;letter-spacing:.2em;text-transform:uppercase}
+    input{width:100%;padding:12px;border-radius:12px;border:1px solid #223147;background:#0b121a;color:#e6eef9;font-weight:700;outline:none}
+    input:focus{border-color:#3b82f6;box-shadow:0 0 0 4px rgba(59,130,246,.15)}
+
+    .cta{display:flex;gap:10px;align-items:center}
+    .btn{appearance:none;border:1px solid var(--line);background:linear-gradient(180deg,#121a2a,#0e1523);color:#eaf2ff;padding:12px 14px;border-radius:12px;font-weight:900;cursor:pointer;transition:.15s}
+    .btn:hover{transform:translateY(-1px)}
+    .btn.primary{background:linear-gradient(180deg,#254176,#14233f);border-color:#254176}
+    .btn.safe{background:linear-gradient(180deg,#17503b,#0d2f25);border-color:#17503b}
+    .btn.ghost{background:transparent}
+
+    .status{min-height:44px;display:flex;align-items:center;justify-content:center;border:1px dashed var(--line);border-radius:12px;padding:10px;background:#0b1118;font:700 12px var(--mono)}
+    .status.ok{color:var(--mint);border-color:#134e4a}
+    .status.err{color:var(--rose);border-color:#4c1d1d}
+    .handle{background:#0a111a;border:1px dashed #253349;color:#cde8ff;padding:10px;border-radius:12px;word-break:break-all;font:700 12px var(--mono)}
+    .value{font:900 22px var(--mono);color:#76a9fa}
+
+    /* Right rail: Rules Vault & Activity */
+    .rail{padding:16px;display:grid;gap:12px}
+    .rail .section{padding:14px;border-bottom:1px dashed var(--line)}
+    .pill{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:999px;background:#0b121a;padding:8px 12px;font:800 12px var(--mono)}
+    .kv{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+    .kv .k{color:#9fb2ce}
+
+    .log{height:220px;overflow:auto;padding:10px;background:#0a111a;border:1px solid var(--line);border-radius:12px;font:700 12px var(--mono)}
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=IBM+Plex+Mono:wght@700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+  <div class="top">
+    <div class="brand">
+      <div class="logo">FHE</div>
+      <div>
+        <div style="font-weight:800">Quality Vault</div>
+        <div style="font-size:12px;color:#9fb2ce">Private QA · Sepolia</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <div id="tabLab" class="tab active">Quality Lab</div>
+      <div id="tabVault" class="tab">Rules Vault</div>
+    </div>
+    <div class="row">
+      <span id="net" class="pill">Network: —</span>
+      <span id="addr" class="pill">—</span>
+      <button id="btnConnect" class="btn primary">Connect</button>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <section class="grid">
+      <!-- LAB (left) -->
+      <section id="lab" class="panel wizard">
+        <div class="steps">
+          <div id="s1" class="step on">1 · Encrypt metrics</div>
+          <div id="s2" class="step">2 · Submit batch</div>
+          <div id="s3" class="step">3 · Reveal verdict</div>
+        </div>
+
+        <article class="card">
+          <h2>Metrics</h2>
+          <div class="two">
+            <div><label>impurityPPM</label><input id="m0" type="number" min="0" max="65535" placeholder="110"/></div>
+            <div><label>moistureBP</label><input id="m1" type="number" min="0" max="65535" placeholder="0..10000"/></div>
+          </div>
+          <div class="two">
+            <div><label>density</label><input id="m2" type="number" min="0" max="65535" placeholder="500"/></div>
+            <div><label>hardness</label><input id="m3" type="number" min="0" max="65535" placeholder="90"/></div>
+          </div>
+          <div class="row">
+            <div style="flex:1"><label>Batch Salt</label><input id="salt" type="text" placeholder="auto-generate if empty"/></div>
+            <div class="cta"><button id="btnEncrypt" class="btn">Seal Input</button></div>
+          </div>
+        </article>
+
+        <article class="card" style="margin-top:10px">
+          <h2>Submit</h2>
+          <div class="kv">
+            <div class="k">Batch ID</div><div id="batchId" class="pill">—</div>
+            <div class="k">Handles</div><div id="hPreview" class="pill">—</div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button id="btnSend" class="btn primary">Dispatch to Chain</button>
+            <button id="btnRecover" class="btn ghost">Recover by Batch ID</button>
+          </div>
+          <div id="labStatus" class="status" style="margin-top:8px">—</div>
+        </article>
+
+        <article class="card" style="margin-top:10px">
+          <h2>Verdict</h2>
+          <div class="kv">
+            <div class="k">Encrypted handle</div><div id="handleBox" class="pill">—</div>
+            <div class="k">Result</div><div id="result" class="value">—</div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button id="btnReveal" class="btn safe">Reveal Locally</button>
+          </div>
+        </article>
+      </section>
+
+      <!-- RAIL (right) -->
+      <aside class="panel rail">
+        <div class="section">
+          <div class="kv">
+            <div class="k">Owner</div><div id="kOwner" class="pill">—</div>
+            <div class="k">Contract</div><div class="pill" id="kAddr">—</div>
+          </div>
+        </div>
+        <div id="vault" class="section" style="display:none">
+          <h2 style="margin:0 0 6px">Rules Vault</h2>
+          <div class="row" style="margin:8px 0">
+            <div style="flex:1"><label>maxImpurity</label><input id="r0" type="number" min="0" max="65535"/></div>
+            <div style="flex:1"><label>maxMoisture</label><input id="r1" type="number" min="0" max="65535"/></div>
+          </div>
+          <div class="row">
+            <div style="flex:1"><label>minDensity</label><input id="r2" type="number" min="0" max="65535"/></div>
+            <div style="flex:1"><label>minHardness</label><input id="r3" type="number" min="0" max="65535"/></div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button id="btnSealRules" class="btn">Seal Rules</button>
+            <button id="btnAuditHandles" class="btn ghost">Audit Handles</button>
+            <button id="btnPublicRules" class="btn ghost">Make Public</button>
+          </div>
+          <div id="ruleHandles" class="handle" style="margin-top:8px">—</div>
+        </div>
+
+        <div class="section">
+          <h2 style="margin:0 0 6px">Activity</h2>
+          <div id="log" class="log"></div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <!-- SDKs -->
+  <script type="module" crossorigin src="https://cdn.zama.ai/relayer-sdk-js/0.2.0/relayer-sdk-js.js"></script>
+  <script type="module" crossorigin src="https://cdn.jsdelivr.net/npm/ethers@6.15.0/+esm"></script>
+
+  <script type="module">
+    import { BrowserProvider, Contract, keccak256, toUtf8Bytes, Interface } from "https://cdn.jsdelivr.net/npm/ethers@6.15.0/+esm";
+    import { initSDK, createInstance, SepoliaConfig, generateKeypair } from "https://cdn.zama.ai/relayer-sdk-js/0.2.0/relayer-sdk-js.js";
+
+    /* ===== Config ===== */
+    const CONTRACT_ADDRESS = "0xd3014814A46cA5e24aE30535288B615c29ecde41";
+    const RELAYER_URL = "https://relayer.testnet.zama.cloud";
+    const CHAIN_ID_HEX = "0xaa36a7";
+
+    /* ABI (minimal) */
+    const abi = [
+      { type:"function", name:"version", inputs:[], outputs:[{type:"string"}], stateMutability:"pure" },
+      { type:"function", name:"owner", inputs:[], outputs:[{type:"address"}], stateMutability:"view" },
+      { type:"function", name:"setRulesEncrypted", inputs:[{type:"bytes32[4]"},{type:"bytes"}], outputs:[], stateMutability:"nonpayable" },
+      { type:"function", name:"getRuleHandles", inputs:[], outputs:[{type:"bytes32"},{type:"bytes32"},{type:"bytes32"},{type:"bytes32"}], stateMutability:"view" },
+      { type:"function", name:"makeRulesPublic", inputs:[], outputs:[], stateMutability:"nonpayable" },
+      { type:"function", name:"submitBatchAndCheck", inputs:[{type:"bytes32"},{type:"bytes32[4]"},{type:"bytes"}], outputs:[{type:"bytes1"}], stateMutability:"nonpayable" },
+      { type:"function", name:"getVerdictHandle", inputs:[{type:"bytes32"}], outputs:[{type:"bytes32"}], stateMutability:"view" },
+      { type:"event", name:"BatchChecked", inputs:[{indexed:true,name:"batchId",type:"bytes32"},{indexed:true,name:"submitter",type:"address"},{indexed:false,name:"verdictHandle",type:"bytes32"}] }
+    ];
+    const iface = new Interface(abi);
+
+    /* ===== Elements ===== */
+    const $ = (id)=>document.getElementById(id);
+    const els = {
+      tabLab: $("tabLab"), tabVault: $("tabVault"), lab: $("lab"), vault: $("vault"),
+      btnConnect: $("btnConnect"), net: $("net"), addr: $("addr"), kOwner: $("kOwner"), kAddr: $("kAddr"),
+      m0: $("m0"), m1: $("m1"), m2: $("m2"), m3: $("m3"), salt: $("salt"),
+      btnEncrypt: $("btnEncrypt"), btnSend: $("btnSend"), btnRecover: $("btnRecover"), btnReveal: $("btnReveal"),
+      batchId: $("batchId"), hPreview: $("hPreview"), labStatus: $("labStatus"), handleBox: $("handleBox"), result: $("result"),
+      r0: $("r0"), r1: $("r1"), r2: $("r2"), r3: $("r3"), btnSealRules: $("btnSealRules"), btnAuditHandles: $("btnAuditHandles"), btnPublicRules: $("btnPublicRules"), ruleHandles: $("ruleHandles"),
+      log: $("log")
+    };
+    els.addr.textContent = CONTRACT_ADDRESS; els.kAddr.textContent = CONTRACT_ADDRESS; els.net.textContent = "Network: Sepolia";
+
+    /* ===== State & Logger ===== */
+    let provider, signer, user, contract, relayer;
+    let lastHandles = null, lastProof = null, currentBatch = null, lastEventHandle = null;
+
+    const TS = () => new Date().toISOString().replace('T',' ').replace('Z','');
+    const KB = (n)=> (n/1024).toFixed(2)+' KB';
+    const short = (a)=> a ? a.slice(0,6)+"…"+a.slice(-4) : "—";
+    const log = (...a)=>{ const line = `[${TS()}] ${a.join(' ')}`; console.log(...a); els.log.textContent += line+"\n"; els.log.scrollTop = els.log.scrollHeight; };
+    const status = (el, text, ok=null)=>{ el.textContent=text; el.className='status'+(ok===true?' ok': ok===false?' err':''); };
+
+    /* ===== Tabs ===== */
+    els.tabLab.onclick = ()=>{ els.tabLab.classList.add('active'); els.tabVault.classList.remove('active'); els.lab.style.display='block'; els.vault.style.display='none'; };
+    els.tabVault.onclick = ()=>{ els.tabVault.classList.add('active'); els.tabLab.classList.remove('active'); els.lab.style.display='none'; els.vault.style.display='block'; };
+
+    /* ===== Connect ===== */
+    els.btnConnect.onclick = async () => {
+      log('[CONNECT] starting');
+      try{
+        if(!window.ethereum) throw new Error('MetaMask not found');
+        provider = new BrowserProvider(window.ethereum);
+        await provider.send('eth_requestAccounts', []);
+        const net = await provider.getNetwork();
+        if(net.chainId !== 11155111n){ await provider.send('wallet_switchEthereumChain', [{ chainId: CHAIN_ID_HEX }]); }
+        signer = await provider.getSigner(); user = await signer.getAddress();
+        contract = new Contract(CONTRACT_ADDRESS, abi, signer);
+        els.btnConnect.textContent = short(user);
+
+        await initSDK();
+        relayer = await createInstance({ ...SepoliaConfig, relayerUrl: RELAYER_URL, network: window.ethereum, debug:true });
+        status(els.labStatus, 'Relayer ready', true);
+        const own = await contract.owner(); els.kOwner.textContent = short(own);
+        log('[CONNECT] ok as', user);
+      }catch(e){ status(els.labStatus, e.message||String(e), false); log('[CONNECT][ERR]', e.message||e); }
+    };
+
+    /* ===== Lab step 1: Seal input (encrypt only) ===== */
+    els.btnEncrypt.onclick = async () => {
+      log('[SEAL] preparing');
+      try{
+        if(!relayer||!contract) throw new Error('Connect first');
+        const m = [Number(els.m0.value||0), Number(els.m1.value||0), Number(els.m2.value||0), Number(els.m3.value||0)];
+        const inU16 = (x)=> Number.isInteger(x) && x>=0 && x<=65535;
+        if(!m.every(inU16)) throw new Error('All metrics must be uint16 (0..65535)');
+        let salt = (els.salt.value||'').trim(); if(!salt){ salt = 'salt-'+crypto.getRandomValues(new Uint32Array(1))[0].toString(16); els.salt.value = salt; }
+        currentBatch = keccak256(toUtf8Bytes(salt)); els.batchId.textContent = currentBatch;
+
+        const buf = relayer.createEncryptedInput(CONTRACT_ADDRESS, user);
+        log('[SEAL] add16/impurity', String(m[0])); buf.add16(m[0]);
+        log('[SEAL] add16/moisture', String(m[1])); buf.add16(m[1]);
+        log('[SEAL] add16/density',  String(m[2])); buf.add16(m[2]);
+        log('[SEAL] add16/hardness', String(m[3])); buf.add16(m[3]);
+        const { handles, inputProof } = await buf.encrypt();
+        lastHandles = handles; lastProof = inputProof; els.hPreview.textContent = handles.map(h=>String(h).slice(0,10)+'…').join(' | ');
+        status(els.labStatus, `Sealed ${handles.length} inputs · proof ${KB(inputProof?.length||0)}`, true);
+      }catch(e){ status(els.labStatus, e.message||String(e), false); log('[SEAL][ERR]', e.message||e); }
+    };
+
+    /* ===== Lab step 2: Dispatch transaction ===== */
+    els.btnSend.onclick = async () => {
+      log('[DISPATCH] sending');
+      try{
+        if(!lastHandles||!lastProof||!currentBatch) throw new Error('Seal inputs first');
+        try{ await contract.submitBatchAndCheck.staticCall(currentBatch, lastHandles, lastProof); log('[DISPATCH] staticCall ok'); }catch(e){ log('[DISPATCH] staticCall revert (non-fatal)', e?.shortMessage||e?.message||e); }
+        const tx = await contract.submitBatchAndCheck(currentBatch, lastHandles, lastProof);
+        log('[TX]', tx.hash);
+        const rcpt = await tx.wait(); log('[MINED] block', String(rcpt.blockNumber));
+        const topic = iface.getEvent('BatchChecked').topicHash;
+        const lg = rcpt.logs.find(l => l.topics?.[0] === topic);
+        if(!lg) throw new Error('BatchChecked not found');
+        const parsed = iface.parseLog(lg); lastEventHandle = parsed.args.verdictHandle; els.handleBox.textContent = lastEventHandle;
+        status(els.labStatus, 'Dispatched & stored ✓', true);
+      }catch(e){ status(els.labStatus, e.message||String(e), false); log('[DISPATCH][ERR]', e.message||e); }
+    };
+
+    /* ===== Recover by Batch ID (no submit) ===== */
+    els.btnRecover.onclick = async () => {
+      log('[RECOVER]');
+      try{
+        const salt = (els.salt.value||'').trim(); if(!salt) throw new Error('Enter the same salt');
+        const bid = keccak256(toUtf8Bytes(salt)); els.batchId.textContent = bid;
+        const handle = await contract.getVerdictHandle(bid);
+        if(handle === '0x0000000000000000000000000000000000000000000000000000000000000000') throw new Error('No verdict stored');
+        els.handleBox.textContent = handle; lastEventHandle = handle; status(els.labStatus, 'Handle recovered ✓', true);
+      }catch(e){ status(els.labStatus, e.message||String(e), false); log('[RECOVER][ERR]', e.message||e); }
+    };
+
+    /* ===== Step 3: Reveal locally (userDecrypt) ===== */
+    els.btnReveal.onclick = async () => {
+      log('[REVEAL]');
+      try{
+        if(!lastEventHandle) throw new Error('No handle to decrypt');
+        const kp = await generateKeypair();
+        const startTs = Math.floor(Date.now()/1000).toString();
+        const days = '7';
+        const eip = relayer.createEIP712(kp.publicKey, [CONTRACT_ADDRESS], startTs, days);
+        const sig = await signer.signTypedData(eip.domain, { UserDecryptRequestVerification: eip.types.UserDecryptRequestVerification }, eip.message);
+        const out = await relayer.userDecrypt([{ handle: lastEventHandle, contractAddress: CONTRACT_ADDRESS }], kp.privateKey, kp.publicKey, sig.replace('0x',''), [CONTRACT_ADDRESS], await signer.getAddress(), startTs, days);
+        let v = out[lastEventHandle]; if(v===undefined){ const k = Object.keys(out).find(k=>k.toLowerCase()===String(lastEventHandle).toLowerCase()); v = k?out[k]:undefined; }
+        if(v===undefined) throw new Error('No decrypt output');
+        const ok = (v===true||v==='true'||v===1||v==='1'||String(v)==='0x01');
+        els.result.textContent = ok ? 'ACCEPT' : 'REJECT';
+        els.result.style.color = ok ? '#34d399' : '#fb7185';
+        status(els.labStatus, 'Revealed ✓', true);
+      }catch(e){ status(els.labStatus, e.message||String(e), false); log('[REVEAL][ERR]', e.message||e); }
+    };
+
+    /* ===== Vault actions (admin) ===== */
+    els.btnSealRules.onclick = async () => {
+      log('[RULES] seal');
+      try{
+        if(!relayer||!contract) throw new Error('Connect first');
+        const vals = [Number(els.r0.value||0), Number(els.r1.value||0), Number(els.r2.value||0), Number(els.r3.value||0)];
+        const inU16 = (x)=> Number.isInteger(x) && x>=0 && x<=65535;
+        if(!vals.every(inU16)) throw new Error('Rules must be uint16 (0..65535)');
+        const buf = relayer.createEncryptedInput(CONTRACT_ADDRESS, user);
+        vals.forEach((v,i)=>{ log(`[RULES] add16[${i}]`, String(v)); buf.add16(v); });
+        const { handles, inputProof } = await buf.encrypt();
+        const tx = await contract.setRulesEncrypted(handles, inputProof); log('[TX rules]', tx.hash); await tx.wait();
+        log('[RULES] ok');
+      }catch(e){ log('[RULES][ERR]', e.message||e); }
+    };
+    els.btnAuditHandles.onclick = async () => {
+      log('[AUDIT] get handles');
+      try{ const h = await contract.getRuleHandles(); els.ruleHandles.textContent = `maxImpurity: ${h[0]}\nmaxMoisture: ${h[1]}\nminDensity: ${h[2]}\nminHardness: ${h[3]}`; }catch(e){ log('[AUDIT][ERR]', e.message||e); }
+    };
+    els.btnPublicRules.onclick = async () => {
+      log('[RULES] make public');
+      try{ const tx = await contract.makeRulesPublic(); log('[TX rules->public]', tx.hash); await tx.wait(); }
+      catch(e){ log('[RULES][ERR]', e.message||e); }
+    };
+  </script>
+</body>
+</html>

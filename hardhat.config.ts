@@ -14,8 +14,11 @@ import "./tasks/FHECounter";
 
 // Run 'npx hardhat vars setup' to see the list of variables that need to be set
 
-const MNEMONIC: string = vars.get("MNEMONIC", "test test test test test test test test test test test junk");
-const INFURA_API_KEY: string = vars.get("INFURA_API_KEY", "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz");
+import dotenv from "dotenv";
+dotenv.config();
+
+const MNEMONIC: string = process.env.MNEMONIC || "test test test test test test test test test test test junk";
+const INFURA_API_KEY: string = process.env.INFURA_API_KEY || "";
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
@@ -65,7 +68,7 @@ const config: HardhatUserConfig = {
     tests: "./test",
   },
   solidity: {
-    version: "0.8.24",
+    version: "0.8.25",
     settings: {
       metadata: {
         // Not including the metadata hash
