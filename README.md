@@ -96,10 +96,16 @@ Let `deposit` be a player’s deposit.
 * **Join** (enabled only in WAITING, when nick/deposit/choice are valid). Joining encrypts your deposit & choice via Relayer SDK and submits on‑chain.
 * **Your rewards (accumulated)** + **Claim** button to withdraw your unclaimed payouts across seasons.
 
+<img width="1279" height="718" alt="image" src="https://github.com/user-attachments/assets/2e4bdc34-8578-4b2e-b3de-a1b2dc43ffdd" />
+
+
 ### Left panel — Visualization & Results
 
 * While a season is **DONE**, you can open the **Platform visualization**: a tower animation reveals each floor (1..50) with nick/choice/payout once results are available.
 * The **Results table** lists Floor, Nick, Deposit, Choice, Payout, Address. Your row is highlighted.
+
+<img width="589" height="571" alt="image" src="https://github.com/user-attachments/assets/c11b4c22-aaa5-4525-be59-ba36c55e31d7" />
+<img width="582" height="558" alt="image" src="https://github.com/user-attachments/assets/d0c6bb61-bbf0-474c-9e04-e4a2b14700ea" />
 
 ### Profile
 
@@ -108,6 +114,9 @@ Let `deposit` be a player’s deposit.
 
   * Season, Floor, Deposit, Choice, Reward.
 * **Pagination:** **10 rows per page** (like in Seasons History).
+
+<img width="1300" height="785" alt="image" src="https://github.com/user-attachments/assets/c8ed5d9e-c48c-4886-95c1-cb7413994886" />
+
 
 ### Seasons History
 
@@ -123,6 +132,8 @@ Let `deposit` be a player’s deposit.
 * **Compute & publish results**: the dApp decrypts public FHE handles via the Relayer, computes payouts off‑chain, and calls `publishResults(...)`.
 * **Treasury**: view accumulated 1% and **Claim Treasury**.
 * **Start next season (WAITING)**: closes the old season, carries `nextPool + remainder` into the new season and resets state.
+
+<img width="1263" height="436" alt="image" src="https://github.com/user-attachments/assets/7aa804b6-689a-4db0-8c4b-1ebcc023688a" />
 
 ---
 
