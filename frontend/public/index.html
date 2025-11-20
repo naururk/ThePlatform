@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>The Platform</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+
+  <!-- COOP/COEP для WASM/воркеров Relayer SDK -->
+  <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin" />
+  <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp" />
+
+  <!-- App CSS (используется внутри App.js) -->
+  <link rel="stylesheet" href="./css/app.css" />
+
+  <style>
+    :root{
+      --bg1:#060a16; --bg2:#0a1222; --ink:#e5ecff;
+      --accent:#2f66ff; --accent-3:#2553e6;
+      --logo-nudge-x:-6px; /* 0px, если PNG обрезан */
+    }
+    html,body{height:100%}
+    body{
+      margin:0; color:var(--ink);
+      background:
+        radial-gradient(1200px 600px at 50% -10%, #0e1b33 0%, transparent 70%),
+        linear-gradient(180deg, var(--bg2) 0%, var(--bg1) 100%);
+      font:16px/1.6 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica Neue,Arial,"Apple Color Emoji","Segoe UI Emoji";
+      display:grid; place-items:center;
+    }
+
+    /* Лендинг */
+    .landing{
+      max-width:960px; padding:48px 20px;
+      display:flex; flex-direction:column; align-items:center; gap:22px; text-align:center;
+    }
+    .logo{
+      display:block; width:min(640px, 88vw); height:auto;
+      transform:translateX(var(--logo-nudge-x));
+      image-rendering:auto;
+      filter: drop-shadow(0 10px 30px rgba(37,83,230,.25)) drop-shadow(0 0 18px rgba(37,83,230,.18));
+    }
+    .lead{
+      margin:0; max-width:760px; font-size:18px;
+      color:#fff; font-weight:800;
+    }
+    .cta{
+      margin-top:20px; display:inline-flex; align-items:center; justify-content:center;
+      padding:24px 34px; font-weight:900; font-size:24px; letter-spacing:.4px; text-transform:uppercase;
+      color:#eaf1ff; background:linear-gradient(180deg,var(--accent) 0%, var(--accent-3) 100%);
+      border:1px solid rgba(255,255,255,.12); border-radius:16px; cursor:pointer; text-decoration:none;
+      transition:.15s transform ease, .15s box-shadow ease;
+      box-shadow:0 14px 40px rgba(47,102,255,.28), inset 0 0 0 1px rgba(255,255,255,.05);
+      min-width:280px;
+    }
+    .cta:hover{transform:translateY(-1px); box-shadow:0 18px 48px rgba(47,102,255,.36), inset 0 0 0 1px rgba(255,255,255,.08)}
+    .cta:active{transform:translateY(0) scale(.99)}
+
+    /* Подсказки/ошибки */
+    .hint{margin-top:8px; font-size:14px; color:#b7c7ff; opacity:.9}
+    .error{margin-top:8px; font-size:14px; color:#ffb7c7; opacity:.95}
+
+    /* Модалка «нет кошелька» */
+    .overlay{position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; place-items:center;}
+    .modal{width:min(520px, 92vw); background:#0b1424; border:1px solid #17233b; border-radius:16px; padding:22px;}
+    .modal h3{margin:0 0 6px; font-size:18px}
+    .modal p{margin:0 0 16px; color:#cfe0ff; opacity:.85}
+    .row{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    .btn{padding:10px 14px; border-radius:12px; border:1px solid #223250; background:#0a2f54; color:#cfe0ff; font-weight:800; cursor:pointer; text-align:center; text-decoration:none}
+    .btn.secondary{background:#101a31}
+    .closeX{float:right; cursor:pointer; opacity:.6}
+
+    /* Контейнер приложения (React) — скрыт до монтирования */
+    #root{display:none; width:100%; height:100%;}
+    #root.tp-mounted{display:block;}
+  </style>
+
+  <script>
+    /* Перезагрузка при смене аккаунта/сети + сброс автологина */
+    (function () {
+      const boot = () => {
+        if (window.ethereum && window.ethereum.on) {
+          window.ethereum.on('accountsChanged', (accs) => {
+            if (!accs || accs.length === 0) {
+              localStorage.removeItem('tp_autologin');
+            }
+            location.reload();
+          });
+          window.ethereum.on('chainChanged', () => location.reload());
+          window.ethereum.on?.('disconnect', () => {
+            localStorage.removeItem('tp_autologin');
+            location.reload();
+          });
+        }
+      };
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', boot);
+      } else {
+        boot();
+      }
+    })();
+  </script>
+</head>
+<body>
+
+  <!-- ЛЕНДИНГ -->
+  <section id="landing" class="landing" aria-label="Connect">
+    <img class="logo" src="logo/logo.png" alt="The Platform logo" width="640" height="180" decoding="async" />
+    <p class="lead">
+      A social experiment about greed, risk, and trust. Contribute to a shared pool
+      and make a <b>blind choice</b> — GRAB, SKIM, or HOLD. Simple rules decide the outcome.
+      The bold and the patient reap the rewards.
+    </p>
+    <a id="connectBtn" class="cta" href="#">Connect wallet</a>
+    <div id="netHint" class="hint" hidden>Switch to Sepolia to continue.</div>
+    <div id="errText" class="error" hidden></div>
+  </section>
+
+  <!-- РУТ ПРИЛОЖЕНИЯ -->
+  <div id="root"></div>
+
+  <!-- Модалка «нет кошелька» -->
+  <div id="overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="mm-title">
+    <div class="modal">
+      <span id="closeX" class="closeX">✕</span>
+      <h3 id="mm-title">No wallet detected</h3>
+      <p>Please install MetaMask (or any EVM wallet) to continue.</p>
+      <div class="row">
+        <a class="btn" target="_blank" rel="noopener" href="https://metamask.io/download/">Install MetaMask</a>
+        <button class="btn secondary" id="laterBtn">Maybe later</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модульный скрипт -->
+  <script type="module">
+    import React from "https://esm.sh/react@18.2.0";
+    import { createRoot } from "https://esm.sh/react-dom@18.2.0/client";
+
+    const $        = q => document.querySelector(q);
+    const landing  = $("#landing");
+    const connect  = $("#connectBtn");
+    const netHint  = $("#netHint");
+    const errText  = $("#errText");
+    const overlay  = $("#overlay");
+    const closeX   = $("#closeX");
+    const laterBtn = $("#laterBtn");
+    const rootEl   = $("#root");
+
+    /* --------- Sepolia: нормализация и переключение --------- */
+    const CHAIN_ID_HEX = '0xaa36a7'; // 11155111 (Sepolia)
+    const CHAIN_PARAMS = {
+      chainId: CHAIN_ID_HEX,
+      chainName: 'Sepolia',
+      nativeCurrency: { name: 'Sepolia ETH', symbol: 'SEP', decimals: 18 },
+      rpcUrls: ['https://rpc.sepolia.org'],
+      blockExplorerUrls: ['https://sepolia.etherscan.io']
+    };
+
+    function normalizeChainId(id) {
+      if (!id) return '';
+      if (/^\d+$/.test(id)) { // "11155111"
+        const n = BigInt(id);
+        return '0x' + n.toString(16);
+      }
+      return String(id).toLowerCase();
+    }
+
+    async function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+    async function ensureSepoliaStrict() {
+      if (!window.ethereum?.request) return false;
+
+      // текущая сеть
+      let current = normalizeChainId(await window.ethereum.request({ method: 'eth_chainId' }).catch(()=>null));
+      if (current === CHAIN_ID_HEX) {
+        netHint.hidden = true;
+        return true;
+      }
+
+      netHint.hidden = false; // показываем подсказку
+
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: CHAIN_ID_HEX }],
+        });
+      } catch (err) {
+        if (err?.code === 4902) {
+          try {
+            await window.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [CHAIN_PARAMS],
+            });
+            await window.ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: CHAIN_ID_HEX }],
+            });
+          } catch (err2) {
+            console.warn('add/switch failed:', err2);
+            return false;
+          }
+        } else {
+          console.warn('switch rejected/failed:', err);
+          return false;
+        }
+      }
+
+      await sleep(250);
+      current = normalizeChainId(await window.ethereum.request({ method: 'eth_chainId' }).catch(()=>null));
+      const ok = current === CHAIN_ID_HEX;
+      netHint.hidden = ok;
+      return ok;
+    }
+
+    async function isMetaMaskUnlocked() {
+  try {
+    const accs = await window.ethereum.request({ method: 'eth_accounts' });
+    return Array.isArray(accs) && accs.length > 0; // есть разрешение и разблокирован
+  } catch {
+    return false;
+  }
+}
+
+
+    async function guardNetworkOrThrow() {
+      const id = normalizeChainId(await window.ethereum.request({ method: 'eth_chainId' }));
+      if (id !== CHAIN_ID_HEX) {
+        throw new Error('Wrong network: please switch to Sepolia');
+      }
+    }
+
+    /* --------- Монтирование приложения --------- */
+    async function mountApp() {
+      // Жёсткая проверка сети перед монтированием (на случай любых расхождений)
+      await guardNetworkOrThrow();
+
+      landing.style.display = "none";
+      rootEl.classList.add("tp-mounted");
+      const { default: App } = await import("./js/App.js");
+      const root = createRoot(rootEl);
+      root.render(React.createElement(App));
+    }
+
+    /* --------- Строгий автологин --------- */
+    async function checkAutoEnter() {
+      const allowAuto = localStorage.getItem("tp_autologin") === "1";
+      if (!allowAuto) return;
+      if (!window.ethereum?.request) return;
+
+      try {
+        // 1) проверяем, что уже есть аккаунты
+        const accs = await window.ethereum.request({ method: "eth_accounts" });
+        if (!Array.isArray(accs) || accs.length === 0) return;
+
+        // 2) (MetaMask) разблокирован ли
+        const unlocked = await isMetaMaskUnlocked();
+        if (!unlocked) return;
+
+        // 3) строго переключаем на Sepolia
+        const ok = await ensureSepoliaStrict();
+        if (!ok) return;
+
+        // 4) финальная гарантия
+        await guardNetworkOrThrow();
+
+        // 5) монтируем
+        await mountApp();
+      } catch (e) {
+        console.warn('autoEnter blocked:', e);
+      }
+    }
+
+    /* --------- Обработчик CONNECT --------- */
+    connect.addEventListener("click", async (e)=>{
+      e.preventDefault();
+      errText.hidden = true; errText.textContent = '';
+
+      if (!window.ethereum?.request){
+        overlay.style.display = "grid";
+        return;
+      }
+      try{
+        // 1) СНАЧАЛА запрашиваем аккаунты (MetaMask позволит switch только после connect)
+        const accs = await window.ethereum.request({ method: "eth_requestAccounts" });
+        if (!Array.isArray(accs) || accs.length === 0) return;
+
+        // 2) Строго добиваемся Sepolia (switch/add). Если пользователь отказал — стоп.
+        const ok = await ensureSepoliaStrict();
+        if (!ok) return;
+
+        // 3) Контроль: проверяем сеть ещё раз и только тогда идём дальше
+        await guardNetworkOrThrow();
+
+        // 4) Фиксируем автологин и монтируем
+        localStorage.setItem("tp_autologin", "1");
+        localStorage.setItem("tp_last_addr", accs[0]);
+        await mountApp();
+      }catch(err){
+        console.warn(err);
+        errText.textContent = err?.message || 'Action was rejected.';
+        errText.hidden = false;
+      }
+    });
+
+    [closeX, laterBtn].forEach(el => el && el.addEventListener("click", ()=> overlay.style.display = "none"));
+
+    // Автовход (строгие условия)
+    checkAutoEnter();
+  </script>
+</body>
+</html>

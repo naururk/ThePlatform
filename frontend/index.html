@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <!-- ВАЖНО: включаем COOP/COEP для FHEVM/Relayer SDK -->
+    <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin" />
+    <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp" />
+
+    <!-- Preconnect к основному CDN Zama и резервным CDN -->
+    <link rel="preconnect" href="https://cdn.zama.ai" />
+    <link rel="preconnect" href="https://unpkg.com" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Platform</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
