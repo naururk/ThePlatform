@@ -1,9 +1,8 @@
 # The Platform — an FHE‑encrypted social experiment (Sepolia, FHEVM)
 
-A social game where every step determines your fate. Choose your strategy, manage risks, claim your reward. A social experiment about greed, risk, and trust. **Deposit** ETH → make a **blind choice** (**GRAB / SKIM / HOLD**) → watch the **tower** resolve floor by floor. You start on one of 50 floors. Your goal: decide whether to risk, play safe, or wait for the finale. Choices and deposits stay private during registration thanks to **Fully Homomorphic Encryption (FHE)** on **FHEVM**, and are revealed for result computation only after the session starts/finishes.
+A game & social experiment about greed, risk, and trust. **Deposit** ETH → make a **blind choice** (**GRAB / SKIM / HOLD**) → watch the **tower** resolve floor by floor. Choices and deposits stay private during registration thanks to **Fully Homomorphic Encryption (FHE)** on **FHEVM**, and are revealed for result computation only after the session starts/finishes.
 
 <img width="1194" height="628" alt="image" src="https://github.com/user-attachments/assets/4958276b-f546-41c9-b1a6-fe3108b22b2c" />
-
 
 ---
 
@@ -24,11 +23,15 @@ A social game where every step determines your fate. Choose your strategy, manag
   * [Profile](#profile)
   * [Seasons History](#seasons-history)
   * [Admin panel](#admin-panel)
+* [Architecture](#architecture)
+* [Tech stack](#tech-stack)
+* [Why FHE](#why-fhe)
 * [Project structure](#project-structure)
 * [Configuration](#configuration)
 * [Run locally](#run-locally)
 * [Security & privacy notes](#security--privacy-notes)
 * [Limitations / known issues](#limitations--known-issues)
+* [Judging checklist](#judging-checklist)
 * [License](#license)
 
 ---
@@ -55,14 +58,15 @@ This is *intentionally* a **game / social experiment**—testing patience vs. gr
 
 * There are **50 floors**. Each floor has a chance window for **GRAB** and **SKIM**:
 
-  * Initial windows: **GRAB ≤ 26**, **SKIM ≤ 50** (in half‑steps on‑chain).
-  * Each *successful* GRAB reduces GRAB window by **1**; each *successful* SKIM reduces window by **0.5**.
+  * **Initial windows:** **GRAB ≤ 26**, **SKIM ≤ 50** (expressed as half‑steps on‑chain).
+  * **After each successful event:**
+
+    * successful **GRAB** → **both** windows decrease by **1.0** floor
+    * successful **SKIM** → **both** windows decrease by **0.5** floor
 
 ### Payout math
 
 Let `deposit` be a player’s deposit.
-
-<img width="1720" height="786" alt="image" src="https://github.com/user-attachments/assets/913fea8b-cd38-4639-87e5-430ca8a7e4d1" />
 
 * **GRAB** (if within GRAB window): gross = `3 × deposit` (capped by current pool).
 * **SKIM** (if within SKIM window): gross = `1.25 × deposit` (capped by current pool).
@@ -99,16 +103,10 @@ Let `deposit` be a player’s deposit.
 * **Join** (enabled only in WAITING, when nick/deposit/choice are valid). Joining encrypts your deposit & choice via Relayer SDK and submits on‑chain.
 * **Your rewards (accumulated)** + **Claim** button to withdraw your unclaimed payouts across seasons.
 
-<img width="1279" height="718" alt="image" src="https://github.com/user-attachments/assets/2e4bdc34-8578-4b2e-b3de-a1b2dc43ffdd" />
-
-
 ### Left panel — Visualization & Results
 
 * While a season is **DONE**, you can open the **Platform visualization**: a tower animation reveals each floor (1..50) with nick/choice/payout once results are available.
 * The **Results table** lists Floor, Nick, Deposit, Choice, Payout, Address. Your row is highlighted.
-
-<img width="589" height="571" alt="image" src="https://github.com/user-attachments/assets/c11b4c22-aaa5-4525-be59-ba36c55e31d7" />
-<img width="582" height="558" alt="image" src="https://github.com/user-attachments/assets/d0c6bb61-bbf0-474c-9e04-e4a2b14700ea" />
 
 ### Profile
 
@@ -117,9 +115,6 @@ Let `deposit` be a player’s deposit.
 
   * Season, Floor, Deposit, Choice, Reward.
 * **Pagination:** **10 rows per page** (like in Seasons History).
-
-<img width="1300" height="785" alt="image" src="https://github.com/user-attachments/assets/c8ed5d9e-c48c-4886-95c1-cb7413994886" />
-
 
 ### Seasons History
 
@@ -136,7 +131,40 @@ Let `deposit` be a player’s deposit.
 * **Treasury**: view accumulated 1% and **Claim Treasury**.
 * **Start next season (WAITING)**: closes the old season, carries `nextPool + remainder` into the new season and resets state.
 
-<img width="1263" height="436" alt="image" src="https://github.com/user-attachments/assets/7aa804b6-689a-4db0-8c4b-1ebcc023688a" />
+---
+
+## Architecture
+
+**High‑level flow:**
+
+1. **Frontend (SPA, ES Modules)** collects inputs and encrypts them with **Zama Relayer SDK** → submits FHE handles to the contract via `join(...)`.
+2. **Smart contract (FHEVM‑compatible)** stores encrypted handles during **WAITING** and exposes public getters for decryption after **RUNNING** begins.
+3. **Relayer** provides:
+
+   * `createEncryptedInput(...)` for client‑side encryption
+   * `publicDecrypt(...)` (and `userDecrypt` fallback) once the session allows it
+4. **Off‑chain compute** (inside Admin panel) aggregates deposits, applies **success window** rules and payout math, then calls `publishResults(...)` with per‑player deposits/choices/payouts plus global **treasury / next pool / remainder**.
+5. **On‑chain state** becomes the single source of truth for **claims** and **history**.
+
+**Data privacy model:** deposits & choices are hidden during **WAITING**; only FHE handles are on‑chain. Clear values are revealed for computation **after** RUNNING/DONE via public decrypt.
+
+---
+
+## Tech stack
+
+* **Solidity / FHEVM‑compatible contract**
+* **Zama Relayer SDK** (browser, CDN) for client‑side FHE encryption & public decrypt
+* **Ethers v6** for RPC, events, and publishing results
+* **Pure ES Modules** (no build step), React 18 (via ESM) for UI
+* **MetaMask / EVM wallets** on **Sepolia**
+
+---
+
+## Why FHE
+
+* **Private commitments**: deposits and choices remain confidential during registration, preventing copy‑cat or sniping strategies.
+* **Fair resolution**: only after the session starts, the game reveals clear values to compute payouts.
+* **On‑chain verifiability**: final results (including per‑player payouts and global accounting) are published on‑chain.
 
 ---
 
@@ -222,7 +250,20 @@ No bundler. The app uses native browser ES modules.
 
 ---
 
+## Judging checklist
+
+* **Deployed & working** on Sepolia (connect, join with encrypted inputs, compute & publish results, claim).
+* **Clear FHE story**: encrypted inputs during WAITING, public decrypt only after RUNNING/DONE, on‑chain publishing of final results.
+* **Innovation & gameplay**: success‑window mechanic with dynamic shrink (GRAB −1.0, SKIM −0.5) and three strategies (GRAB/SKIM/HOLD).
+* **UX & performance**: no‑build SPA, responsive UI, results table & history with pagination, profile view.
+* **Security & transparency**: auditable on‑chain outputs; treasury/next‑pool/remainder accounting; claimable rewards.
+* **Documentation**: this README explains rules, architecture, tech stack, setup, and review steps.
+* **Reproducibility**: run locally with a static server; config is in a single file.
+
+> Reviewer quick‑path: open app → connect MetaMask on Sepolia → set nick + deposit + choice → join (WAITING) → owner starts RUNNING → compute & publish → check results/history → claim rewards.
+
+---
+
 ## License
 
 MIT
-
