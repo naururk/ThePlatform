@@ -1,6 +1,6 @@
 # The Platform — an FHE‑encrypted social experiment (Sepolia, FHEVM)
 
-A game & social experiment about greed, risk, and trust. **Deposit** ETH → make a **blind choice** (**GRAB / SKIM / HOLD**) → watch the **tower** resolve floor by floor. Choices and deposits stay private during registration thanks to **Fully Homomorphic Encryption (FHE)** on **FHEVM**, and are revealed for result computation only after the session starts/finishes.
+A social game where every step determines your fate. Choose your strategy, manage risks, claim your reward. A social experiment about greed, risk, and trust. **Deposit** ETH → make a **blind choice** (**GRAB / SKIM / HOLD**) → watch the **tower** resolve floor by floor. You start on one of 50 floors. Your goal: decide whether to risk, play safe, or wait for the finale. Choices and deposits stay private during registration thanks to **Fully Homomorphic Encryption (FHE)** on **FHEVM**, and are revealed for result computation only after the session starts/finishes.
 
 <img width="1194" height="628" alt="image" src="https://github.com/user-attachments/assets/4958276b-f546-41c9-b1a6-fe3108b22b2c" />
 
@@ -55,12 +55,14 @@ This is *intentionally* a **game / social experiment**—testing patience vs. gr
 
 * There are **50 floors**. Each floor has a chance window for **GRAB** and **SKIM**:
 
-  * Initial windows: **GRAB ≤ 17**, **SKIM ≤ 40** (in half‑steps on‑chain).
-  * Each *successful* GRAB reduces GRAB window by **0.5**; each *successful* SKIM reduces SKIM window by **0.5**.
+  * Initial windows: **GRAB ≤ 26**, **SKIM ≤ 50** (in half‑steps on‑chain).
+  * Each *successful* GRAB reduces GRAB window by **1**; each *successful* SKIM reduces window by **0.5**.
 
 ### Payout math
 
 Let `deposit` be a player’s deposit.
+
+<img width="1720" height="786" alt="image" src="https://github.com/user-attachments/assets/913fea8b-cd38-4639-87e5-430ca8a7e4d1" />
 
 * **GRAB** (if within GRAB window): gross = `3 × deposit` (capped by current pool).
 * **SKIM** (if within SKIM window): gross = `1.25 × deposit` (capped by current pool).
