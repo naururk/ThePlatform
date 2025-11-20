@@ -1,5 +1,21 @@
 # The Platform — an FHE‑encrypted social experiment (Sepolia, FHEVM)
 
+<h2>
+ <p align="center">
+  <a href="https://drive.google.com/file/d/1pe5I_9lrvU-Vvr6GY6tjqpavKjn6_Vuf/view?usp=sharing" target="_blank" rel="noopener noreferrer">
+    🎥 Video DEMO
+  </a>
+ </p>
+</h2>
+
+<h2>
+ <p align="center">
+  <a href="https://naururk.github.io/ETHBridge_PrivateMetrics/" target="_blank" rel="noopener noreferrer">
+    🚀 Live DEMO
+  </a>
+ </p>
+</h2>
+
 A game & social experiment about greed, risk, and trust. **Deposit** ETH → make a **blind choice** (**GRAB / SKIM / HOLD**) → watch the **tower** resolve floor by floor. Choices and deposits stay private during registration thanks to **Fully Homomorphic Encryption (FHE)** on **FHEVM**, and are revealed for result computation only after the session starts/finishes.
 
 <img width="1194" height="628" alt="image" src="https://github.com/user-attachments/assets/4958276b-f546-41c9-b1a6-fe3108b22b2c" />
@@ -68,6 +84,8 @@ This is *intentionally* a **game / social experiment**—testing patience vs. gr
 
 Let `deposit` be a player’s deposit.
 
+<img width="1720" height="786" alt="image" src="https://github.com/user-attachments/assets/913fea8b-cd38-4639-87e5-430ca8a7e4d1" />
+
 * **GRAB** (if within GRAB window): gross = `3 × deposit` (capped by current pool).
 * **SKIM** (if within SKIM window): gross = `1.25 × deposit` (capped by current pool).
 * **HOLD**: after floor 50, if any pool **remainder** exists, it is split **pro‑rata** among HOLD deposits. If no remainder, no HOLD payouts.
@@ -103,10 +121,14 @@ Let `deposit` be a player’s deposit.
 * **Join** (enabled only in WAITING, when nick/deposit/choice are valid). Joining encrypts your deposit & choice via Relayer SDK and submits on‑chain.
 * **Your rewards (accumulated)** + **Claim** button to withdraw your unclaimed payouts across seasons.
 
+<img width="1279" height="718" alt="image" src="https://github.com/user-attachments/assets/2e4bdc34-8578-4b2e-b3de-a1b2dc43ffdd" />
+
 ### Left panel — Visualization & Results
 
 * While a season is **DONE**, you can open the **Platform visualization**: a tower animation reveals each floor (1..50) with nick/choice/payout once results are available.
 * The **Results table** lists Floor, Nick, Deposit, Choice, Payout, Address. Your row is highlighted.
+
+<img width="589" height="571" alt="image" src="https://github.com/user-attachments/assets/c11b4c22-aaa5-4525-be59-ba36c55e31d7" /> <img width="582" height="558" alt="image" src="https://github.com/user-attachments/assets/d0c6bb61-bbf0-474c-9e04-e4a2b14700ea" />
 
 ### Profile
 
@@ -115,6 +137,8 @@ Let `deposit` be a player’s deposit.
 
   * Season, Floor, Deposit, Choice, Reward.
 * **Pagination:** **10 rows per page** (like in Seasons History).
+
+<img width="1300" height="785" alt="image" src="https://github.com/user-attachments/assets/c8ed5d9e-c48c-4886-95c1-cb7413994886" />
 
 ### Seasons History
 
@@ -130,6 +154,8 @@ Let `deposit` be a player’s deposit.
 * **Compute & publish results**: the dApp decrypts public FHE handles via the Relayer, computes payouts off‑chain, and calls `publishResults(...)`.
 * **Treasury**: view accumulated 1% and **Claim Treasury**.
 * **Start next season (WAITING)**: closes the old season, carries `nextPool + remainder` into the new season and resets state.
+
+<img width="1263" height="436" alt="image" src="https://github.com/user-attachments/assets/7aa804b6-689a-4db0-8c4b-1ebcc023688a" />
 
 ---
 
