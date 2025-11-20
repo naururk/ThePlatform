@@ -16,6 +16,15 @@ function shortAddr(addr) {
   return `0x${a.slice(0, 2)}…${addr.slice(-4).toLowerCase()}`;
 }
 
+/** Формат без округления: оставляет dec знаков после точки, лишнее отбрасывает */
+function formatTrunc(n, dec = 4) {
+  if (!Number.isFinite(n)) return dec === 4 ? "0.0000" : "0.00000";
+  const f = 10 ** dec;
+  // усечение (для отрицательных — к нулю)
+  const t = n >= 0 ? Math.floor(n * f) : Math.ceil(n * f);
+  return (t / f).toFixed(dec);
+}
+
 /**
  * Рендер результатов сезона (без JSX).
  * Ожидает:
@@ -73,9 +82,10 @@ export default function ResultsView({ rows, seasonId, onClaim }) {
   );
 
   const row = (r, i) => {
-    const depText = Number.isFinite(r.deposit) ? r.deposit.toFixed(4) : "0.00000";
+    // ⬇️ было toFixed(4) — заменили на усечение без округления
+    const depText = Number.isFinite(r.deposit) ? formatTrunc(r.deposit, 4) : "0.0000";
     const depTitle = r.depositFull || depText;
-    const payoutText = Number.isFinite(r.payout) ? r.payout.toFixed(4) : "0.00000";
+    const payoutText = Number.isFinite(r.payout) ? formatTrunc(r.payout, 4) : "0.0000";
     const payoutTitle = r.payoutFull || payoutText;
 
     const bg = r.isMe ? "rgba(34,197,94,.12)" : "transparent";
@@ -133,7 +143,7 @@ export default function ResultsView({ rows, seasonId, onClaim }) {
             },
             `Your rewards: ${rows.__meReward || "0.00"} ETH`
           ),
-          
+
           rows.__treasury != null &&
             rows.__nextPool != null && [
               h(
