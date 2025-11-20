@@ -2,6 +2,8 @@
 
 A game & social experiment about greed, risk, and trust. **Deposit** ETH → make a **blind choice** (**GRAB / SKIM / HOLD**) → watch the **tower** resolve floor by floor. Choices and deposits stay private during registration thanks to **Fully Homomorphic Encryption (FHE)** on **FHEVM**, and are revealed for result computation only after the session starts/finishes.
 
+<img width="1464" height="730" alt="image" src="https://github.com/user-attachments/assets/0d583897-bbee-4838-8681-6413f80c4edd" />
+
 ---
 
 ## Table of contents
