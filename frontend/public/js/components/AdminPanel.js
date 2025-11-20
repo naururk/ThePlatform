@@ -192,8 +192,11 @@ export default function AdminPanel({ visible, contract, onRefresh }) {
     const statusNum = Number(cs[1]);
     if (statusNum !== 1 && statusNum !== 2) throw new Error("Need RUNNING or DONE");
 
-    let grab2 = Number(cs[3] || 0);
-    let skim2 = Number(cs[4] || 0);
+    // === НОВАЯ МОДЕЛЬ ОКОН ===
+    // Игнорируем контрактные поля окна и задаём фиксированные локальные:
+    // GRAB: 26 этажей → 52 полушага; SKIM: 50 этажей → 100 полушагов.
+    let grab2 = 26 * 2;  // полушаги
+    let skim2 = 50 * 2;  // полушаги
 
     // floors
     let floors = [];
@@ -256,7 +259,6 @@ export default function AdminPanel({ visible, contract, onRefresh }) {
     if (!relayer) {
       const sdk = await loadRelayerSdk();
       const { initSDK, createInstance } = sdk || {};
-      if (!initSDK || !createInstance) throw new Error("Relayer SDK is not available");
       await initSDK();
       const picked = pickRelayerConfig(sdk);
       if (!picked) throw new Error("Relayer network config is missing");
@@ -286,46 +288,32 @@ export default function AdminPanel({ visible, contract, onRefresh }) {
     }
 
     let out;
-    let publicTried = false;
     try {
-      publicTried = true;
       out = await relayer.publicDecrypt(pairs);
-    } catch (e1) {
+    } catch {
       try {
         out = await relayer.publicDecrypt(handlesOnly);
-      } catch (e2) {
-        // последнее средство — userDecrypt. Если он запрещён, покажем понятную ошибку
-        try {
-          const kp = await window.tp.relayerSdk.generateKeypair();
-          const startTs = Math.floor(Date.now() / 1000).toString();
-          const daysValid = "7";
-          const eip = relayer.createEIP712(kp.publicKey, [CONTRACT_ADDRESS], startTs, daysValid);
-          const sig = await signer.signTypedData(
-            eip.domain,
-            { UserDecryptRequestVerification: eip.types.UserDecryptRequestVerification },
-            eip.message
-          );
-          const signerAddr = await signer.getAddress();
-          out = await relayer.userDecrypt(
-            pairs,
-            kp.privateKey,
-            kp.publicKey,
-            sig.replace("0x", ""),
-            [CONTRACT_ADDRESS],
-            signerAddr,
-            startTs,
-            daysValid
-          );
-        } catch (e3) {
-          const msg = (e3?.message || "").toLowerCase();
-          if (msg.includes("not authorized") || msg.includes("unauthorized")) {
-            throw new Error(
-              "Public decrypt недоступен, а userDecrypt разрешён только владельцу handle. " +
-              "Включи publicDecrypt на релайере/контракте или используй консольный расшифровщик для каждого игрока."
-            );
-          }
-          throw e3;
-        }
+      } catch {
+        const kp = await window.tp.relayerSdk.generateKeypair();
+        const startTs = Math.floor(Date.now() / 1000).toString();
+        const daysValid = "7";
+        const eip = relayer.createEIP712(kp.publicKey, [CONTRACT_ADDRESS], startTs, daysValid);
+        const sig = await signer.signTypedData(
+          eip.domain,
+          { UserDecryptRequestVerification: eip.types.UserDecryptRequestVerification },
+          eip.message
+        );
+        const signerAddr = await signer.getAddress();
+        out = await relayer.userDecrypt(
+          pairs,
+          kp.privateKey,
+          kp.publicKey,
+          sig.replace("0x", ""),
+          [CONTRACT_ADDRESS],
+          signerAddr,
+          startTs,
+          daysValid
+        );
       }
     }
 
@@ -378,49 +366,61 @@ export default function AdminPanel({ visible, contract, onRefresh }) {
     }
 
     // compute payouts (депозиты + перенос из прошлого сезона)
-setStatus("Computing payouts…");
+    setStatus("Computing payouts…");
 
-// перенос (nextPool + remainder прошлого сезона)
-let carriedWei = 0n;
-try { carriedWei = await contract.carriedInPublic(); } catch { carriedWei = 0n; }
+    // перенос (nextPool + remainder прошлого сезона)
+    let carriedWei = 0n;
+    try { carriedWei = await contract.carriedInPublic(); } catch { carriedWei = 0n; }
 
-// общая база сезона
-const baseWei = totalDeposits + carriedWei;
+    // общая база сезона
+    const baseWei = totalDeposits + carriedWei;
 
-// снимаем 2% с общей базы (1% казна, 1% в следующий сезон)
-let treasuryWei = baseWei / 100n; // 1%
-let nextPoolWei = baseWei / 100n; // 1%
+    // снимаем 2% с общей базы (1% казна, 1% в следующий сезон)
+    let treasuryWei = baseWei / 100n; // 1%
+    let nextPoolWei = baseWei / 100n; // 1%
 
-// net-пул для выплат этого сезона (98%)
-let pool = baseWei - treasuryWei - nextPoolWei;
+    // net-пул для выплат этого сезона (98%)
+    let pool = baseWei - treasuryWei - nextPoolWei;
 
     rows.sort((a, b) => a.floor - b.floor);
     const payoutsByAddr = new Map();
 
     for (const r of rows) {
       if (!r.addr) continue;
+
       let success = false, gross = 0n;
-      if (r.choiceCode === 1) {
-        success = r.floor * 2 <= grab2;
-        if (success) gross = r.depositWei * 3n;
-      } else if (r.choiceCode === 2) {
-        success = r.floor * 2 <= skim2;
-        if (success) gross = (r.depositWei * 125n) / 100n;
+
+      if (r.choiceCode === Choice.GRAB) {
+        // Успех, если текущий этаж попадает в окно (в полушагах)
+        success = (r.floor * 2) <= grab2;
+        if (success) {
+          gross = r.depositWei * 3n;
+          // успешный GRAB: окна уменьшаются на 1 этаж = 2 полушага
+          grab2 = Math.max(0, grab2 - 2);
+          skim2 = Math.max(0, skim2 - 2);
+        }
+      } else if (r.choiceCode === Choice.SKIM) {
+        success = (r.floor * 2) <= skim2;
+        if (success) {
+          gross = (r.depositWei * 125n) / 100n;
+          // успешный SKIM: окна уменьшаются на 0.5 этажа = 1 полушаг
+          grab2 = Math.max(0, grab2 - 1);
+          skim2 = Math.max(0, skim2 - 1);
+        }
       }
+
       if (success) {
         const payout = gross <= pool ? gross : pool;
         if (payout > 0n) {
           payoutsByAddr.set(r.addr, (payoutsByAddr.get(r.addr) || 0n) + payout);
           pool -= payout;
         }
-        if (grab2 > 0) grab2 -= 1;
-        if (skim2 > 0) skim2 -= 1;
       }
     }
 
     if (pool > 0n && holdDeposits > 0n) {
       for (const r of rows) {
-        if (!r.addr || r.choiceCode !== 3) continue;
+        if (!r.addr || r.choiceCode !== Choice.HOLD) continue;
         const share = (pool * r.depositWei) / holdDeposits;
         if (share > 0n) payoutsByAddr.set(r.addr, (payoutsByAddr.get(r.addr) || 0n) + share);
       }
