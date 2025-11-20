@@ -16,7 +16,7 @@
  </p>
 </h2>
 
-A game & social experiment about greed, risk, and trust. **Deposit** ETH → make a **blind choice** (**GRAB / SKIM / HOLD**) → watch the **tower** resolve floor by floor. Choices and deposits stay private during registration thanks to **Fully Homomorphic Encryption (FHE)** on **FHEVM**, and are revealed for result computation only after the session starts/finishes.
+A social game where every step determines your fate. Choose your strategy, manage risk, claim your reward. A social experiment about greed, risk, and trust. Deposit ETH → make a blind choice (GRAB / SKIM / HOLD) → watch the tower resolve floor by floor. You start on one of 50 floors. Your goal: decide whether to risk, play it safe, or wait for the finale. Choices and deposits stay private during registration thanks to Fully Homomorphic Encryption (FHE) on FHEVM, and are revealed for result computation only once the session starts or finishes.
 
 <img width="1194" height="628" alt="image" src="https://github.com/user-attachments/assets/4958276b-f546-41c9-b1a6-fe3108b22b2c" />
 
