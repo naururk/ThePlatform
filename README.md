@@ -1,6 +1,6 @@
 #### Contributors
 
-<small>Product & Game Theory: [@icryptan](https://x.com/icryptan) **•** [GitHub](https://github.com/icryptan) **•** DS: icryptan</small>
+<small> **Product & Game Theory: ** [@icryptan](https://x.com/icryptan) **•** [GitHub](https://github.com/icryptan) **•** DS: icryptan</small>
 
 <small>Lead Frontend Engineer: [@naururkC4](https://x.com/naururkC4) **•** [GitHub](https://github.com/naururk) **•** DS: naururk</small>
 
