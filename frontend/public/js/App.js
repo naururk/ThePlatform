@@ -893,7 +893,16 @@ export default function App() {
     },
     [
       h("div", { style: { display: "flex", gap: 14, alignItems: "center" } }, [
-        h("div", { style: { fontWeight: 900 } }, "The Platform"),
+        h("a", {
+    href: (typeof location !== "undefined" ? location.origin : "/"),
+    style: {
+      fontWeight: 900,
+      color: "inherit",
+      textDecoration: "none",
+      cursor: "pointer",
+    },
+    title: "The Platform — home",
+  }, "THE PLATFORM v 1.0"),
         h("div", { style: { fontSize: 12, opacity: 0.7 } }, "FHEVM • Sepolia"),
         h("div", { style: { fontSize: 12, opacity: 0.7 } }, `Contract: ${CONTRACT_ADDRESS.slice(0, 6)}…${CONTRACT_ADDRESS.slice(-4)}`),
         me.address && h(HoverBtnTop, {
