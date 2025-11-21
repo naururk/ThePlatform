@@ -24,7 +24,7 @@
 
 <h2>
  <p align="center">
-  <a href="https://naururk.github.io/ETHBridge_PrivateMetrics/" target="_blank" rel="noopener noreferrer">
+  <a href="https://the-platform-three.vercel.app/" target="_blank" rel="noopener noreferrer">
     🚀 Live DEMO
   </a>
  </p>
