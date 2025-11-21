@@ -9,7 +9,7 @@
 <h2>
  <p align="center">
   <a href="https://climb-strategy-game.lovable.app" target="_blank" rel="noopener noreferrer">
-    🔎 App Preview **•** Product Pitch
+    🔎 App Preview • Product Pitch
   </a>
  </p>
 </h2>
