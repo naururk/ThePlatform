@@ -902,7 +902,7 @@ export default function App() {
       cursor: "pointer",
     },
     title: "The Platform — home",
-  }, "THE PLATFORM v 1.0"),
+  }, "THE PLATFORM v1.0"),
         h("div", { style: { fontSize: 12, opacity: 0.7 } }, "FHEVM • Sepolia"),
         h("div", { style: { fontSize: 12, opacity: 0.7 } }, `Contract: ${CONTRACT_ADDRESS.slice(0, 6)}…${CONTRACT_ADDRESS.slice(-4)}`),
         me.address && h(HoverBtnTop, {
