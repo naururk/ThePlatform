@@ -174,7 +174,7 @@ function WaitingPane() {
       Bullet(h("span", null, [Steel("HOLD"), " — if any pool remains after floor 50, it’s split among HOLDs pro-rata."])),
 
       head("Success windows", 6),
-      Bullet("Initially: GRAB ≤ 17 floors, SKIM ≤ 40 floors. Each successful GRAB or SKIM shrinks its own window by 0.5."),
+      Bullet("Initially: GRAB ≤ 26 floors, SKIM ≤ 50 floors. After each successful event: a successful GRAB reduces both windows by 1.0 floor; a successful SKIM reduces both windows by 0.5 floor."),
 
       head("Outcomes", 6),
       Bullet("At each floor: GRAB pays up to 3× deposit (capped by the remaining pool). SKIM pays up to 1.25× (capped by the pool)."),
