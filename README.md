@@ -1,4 +1,4 @@
-#### Contributors
+### Contributors
 
 <small>**Product & Game Theory:** [@icryptan](https://x.com/icryptan) **•** [GitHub](https://github.com/icryptan) **•** DS: icryptan</small>
 
