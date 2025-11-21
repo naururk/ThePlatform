@@ -6,6 +6,13 @@
 
 
 # The Platform — an FHE‑encrypted social experiment (Sepolia, FHEVM)
+<h2>
+ <p align="center">
+  <a href="https://climb-strategy-game.lovable.app" target="_blank" rel="noopener noreferrer">
+    🔎 App Preview **•** Product Pitch
+  </a>
+ </p>
+</h2>
 
 <h2>
  <p align="center">
