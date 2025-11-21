@@ -17,7 +17,18 @@
     :root{
       --bg1:#060a16; --bg2:#0a1222; --ink:#e5ecff;
       --accent:#2f66ff; --accent-3:#2553e6;
-      --logo-nudge-x:-6px; /* 0px, если PNG обрезан */
+      --logo-nudge-x:-6px;
+
+      /* бетонные токены как в приложении */
+      --conc-top:#1f2933;
+      --conc-bot:#020617;
+      --border-soft:rgba(31,41,55,0.9);
+      --shadow-ring:rgba(15,23,42,0.9);
+      --shadow-deep:rgba(0,0,0,0.75);
+      --glow:rgba(56,189,248,0.22);
+      --hover-ring:rgba(202,220,255,0.95);
+      --hover-glow:rgba(56,189,248,0.35);
+      --muted:#b7c7ff;
     }
     html,body{height:100%}
     body{
@@ -40,34 +51,128 @@
       image-rendering:auto;
       filter: drop-shadow(0 10px 30px rgba(37,83,230,.25)) drop-shadow(0 0 18px rgba(37,83,230,.18));
     }
-    .lead{
-      margin:0; max-width:760px; font-size:18px;
-      color:#fff; font-weight:800;
-    }
+    .lead{ margin:0; max-width:760px; font-size:18px; color:#fff; font-weight:800; }
+
+    /* ===== Унифицированные кнопки (как в остальном UI) ===== */
+
+    /* Базовый микс для «бетонной» кнопки */
+    .btn,
     .cta{
-      margin-top:20px; display:inline-flex; align-items:center; justify-content:center;
-      padding:24px 34px; font-weight:900; font-size:24px; letter-spacing:.4px; text-transform:uppercase;
-      color:#eaf1ff; background:linear-gradient(180deg,var(--accent) 0%, var(--accent-3) 100%);
-      border:1px solid rgba(255,255,255,.12); border-radius:16px; cursor:pointer; text-decoration:none;
-      transition:.15s transform ease, .15s box-shadow ease;
-      box-shadow:0 14px 40px rgba(47,102,255,.28), inset 0 0 0 1px rgba(255,255,255,.05);
-      min-width:280px;
+      appearance:none;
+      position:relative;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+
+      padding:10px 14px;
+      min-height:46px;
+      border-radius:12px;
+      border:1px solid var(--border-soft);
+
+      background:
+        linear-gradient(to bottom, rgba(255,255,255,0.06), transparent 32%),
+        linear-gradient(145deg, var(--conc-top), var(--conc-bot));
+      box-shadow:
+        0 0 0 1px var(--shadow-ring),
+        0 14px 30px var(--shadow-deep),
+        0 0 26px var(--glow);
+
+      color:var(--ink);
+      font-weight:800;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      text-decoration:none;
+      cursor:pointer;
+      transition:
+        transform .14s ease,
+        box-shadow .14s ease,
+        filter .14s ease,
+        background .14s ease,
+        color .14s ease,
+        opacity .14s ease,
+        outline-color .14s ease;
+      overflow:hidden; /* для псевдо-слоя подсветки */
     }
-    .cta:hover{transform:translateY(-1px); box-shadow:0 18px 48px rgba(47,102,255,.36), inset 0 0 0 1px rgba(255,255,255,.08)}
-    .cta:active{transform:translateY(0) scale(.99)}
+
+    /* Большая CTA версии той же кнопки */
+    .cta{
+      padding:24px 34px;
+      min-width:280px;
+      border-radius:16px;
+      font-size:24px;
+    }
+
+    /* Обычная маленькая кнопка (в модалке) */
+    .btn{
+      font-size:14px;
+    }
+
+    /* Вариант secondary — тот же стиль, но чуть темнее */
+    .btn.secondary{
+      background:
+        linear-gradient(to bottom, rgba(255,255,255,0.03), transparent 32%),
+        linear-gradient(145deg, #141b24, var(--conc-bot));
+    }
+
+    /* Единый hover-эффект и soft glow */
+    .btn::before,
+    .cta::before{
+      content:"";
+      position:absolute; inset:-1px;
+      border-radius:inherit; pointer-events:none;
+      background:radial-gradient(120% 180% at 50% -20%, rgba(94,164,255,.14), transparent 55%);
+      opacity:0; transition:opacity .18s ease;
+    }
+    .btn:hover:not(:disabled),
+    .cta:hover:not(:disabled){
+      transform:translateY(-1px);
+      box-shadow:
+        0 0 0 1px var(--hover-ring),
+        0 18px 40px rgba(0,0,0,0.85),
+        0 0 30px var(--hover-glow);
+      filter:brightness(1.06);
+    }
+    .btn:hover::before,
+    .cta:hover::before{ opacity:1; }
+
+    .btn:active:not(:disabled),
+    .cta:active:not(:disabled){
+      transform:none;
+      box-shadow:
+        0 0 0 1px var(--shadow-ring),
+        0 12px 24px var(--shadow-deep),
+        0 0 22px var(--glow);
+      filter:none;
+    }
+
+    .btn:disabled,
+    .cta:disabled{
+      opacity:.6;
+      cursor:not-allowed;
+      filter:none;
+      box-shadow:
+        0 0 0 1px var(--shadow-ring),
+        0 10px 22px rgba(0,0,0,.55);
+    }
 
     /* Подсказки/ошибки */
-    .hint{margin-top:8px; font-size:14px; color:#b7c7ff; opacity:.9}
+    .hint{margin-top:8px; font-size:14px; color:var(--muted); opacity:.9}
     .error{margin-top:8px; font-size:14px; color:#ffb7c7; opacity:.95}
 
     /* Модалка «нет кошелька» */
     .overlay{position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; place-items:center;}
-    .modal{width:min(520px, 92vw); background:#0b1424; border:1px solid #17233b; border-radius:16px; padding:22px;}
+    .modal{
+      width:min(520px, 92vw);
+      background:#0b1424;
+      border:1px solid #17233b;
+      border-radius:16px;
+      padding:22px;
+      box-shadow: 0 26px 60px rgba(0,0,0,.9);
+    }
     .modal h3{margin:0 0 6px; font-size:18px}
     .modal p{margin:0 0 16px; color:#cfe0ff; opacity:.85}
     .row{display:grid; grid-template-columns:1fr 1fr; gap:10px}
-    .btn{padding:10px 14px; border-radius:12px; border:1px solid #223250; background:#0a2f54; color:#cfe0ff; font-weight:800; cursor:pointer; text-align:center; text-decoration:none}
-    .btn.secondary{background:#101a31}
     .closeX{float:right; cursor:pointer; opacity:.6}
 
     /* Контейнер приложения (React) — скрыт до монтирования */
@@ -214,14 +319,13 @@
     }
 
     async function isMetaMaskUnlocked() {
-  try {
-    const accs = await window.ethereum.request({ method: 'eth_accounts' });
-    return Array.isArray(accs) && accs.length > 0; // есть разрешение и разблокирован
-  } catch {
-    return false;
-  }
-}
-
+      try {
+        const accs = await window.ethereum.request({ method: 'eth_accounts' });
+        return Array.isArray(accs) && accs.length > 0;
+      } catch {
+        return false;
+      }
+    }
 
     async function guardNetworkOrThrow() {
       const id = normalizeChainId(await window.ethereum.request({ method: 'eth_chainId' }));
@@ -232,9 +336,7 @@
 
     /* --------- Монтирование приложения --------- */
     async function mountApp() {
-      // Жёсткая проверка сети перед монтированием (на случай любых расхождений)
       await guardNetworkOrThrow();
-
       landing.style.display = "none";
       rootEl.classList.add("tp-mounted");
       const { default: App } = await import("./js/App.js");
@@ -249,22 +351,16 @@
       if (!window.ethereum?.request) return;
 
       try {
-        // 1) проверяем, что уже есть аккаунты
         const accs = await window.ethereum.request({ method: "eth_accounts" });
         if (!Array.isArray(accs) || accs.length === 0) return;
 
-        // 2) (MetaMask) разблокирован ли
         const unlocked = await isMetaMaskUnlocked();
         if (!unlocked) return;
 
-        // 3) строго переключаем на Sepolia
         const ok = await ensureSepoliaStrict();
         if (!ok) return;
 
-        // 4) финальная гарантия
         await guardNetworkOrThrow();
-
-        // 5) монтируем
         await mountApp();
       } catch (e) {
         console.warn('autoEnter blocked:', e);
@@ -281,18 +377,14 @@
         return;
       }
       try{
-        // 1) СНАЧАЛА запрашиваем аккаунты (MetaMask позволит switch только после connect)
         const accs = await window.ethereum.request({ method: "eth_requestAccounts" });
         if (!Array.isArray(accs) || accs.length === 0) return;
 
-        // 2) Строго добиваемся Sepolia (switch/add). Если пользователь отказал — стоп.
         const ok = await ensureSepoliaStrict();
         if (!ok) return;
 
-        // 3) Контроль: проверяем сеть ещё раз и только тогда идём дальше
         await guardNetworkOrThrow();
 
-        // 4) Фиксируем автологин и монтируем
         localStorage.setItem("tp_autologin", "1");
         localStorage.setItem("tp_last_addr", accs[0]);
         await mountApp();
