@@ -1,9 +1,9 @@
 ### Contributors
-**Product & Game Theory:** [@icryptan](https://x.com/icryptan) **•** [GitHub](https://github.com/icryptan) **•** Discord: icryptan
+**Product & Game Theory:** [@icryptan](https://x.com/icryptan) **•** [GitHub](https://github.com/icryptan) **•** DS: icryptan
 
-**Lead Frontend Engineer:** [@naururkC4](https://x.com/naururkC4) **•** [GitHub](https://github.com/naururk) **•** Discord: naururk
+**Lead Frontend Engineer:** [@naururkC4](https://x.com/naururkC4) **•** [GitHub](https://github.com/naururk) **•** DS: naururk
 
-**UI/UX Designer:** [@oleg](https://x.com/oleg) **•** [GitHub](https://github.com/oleg) **•** Discord: naururk
+**UI/UX Designer:** [@oleg](https://x.com/oleg) **•** [GitHub](https://github.com/oleg) **•** DS: naururk
 
 
 # The Platform — an FHE‑encrypted social experiment (Sepolia, FHEVM)
