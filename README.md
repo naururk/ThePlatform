@@ -2,7 +2,7 @@
 
 <h2>
  <p align="center">
-  <a href="https://drive.google.com/file/d/1pe5I_9lrvU-Vvr6GY6tjqpavKjn6_Vuf/view?usp=sharing" target="_blank" rel="noopener noreferrer">
+  <a href="https://the-platform-three.vercel.app/" target="_blank" rel="noopener noreferrer">
     🎥 Video DEMO
   </a>
  </p>
