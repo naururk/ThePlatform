@@ -16,7 +16,7 @@
 
 <h2>
  <p align="center">
-  <a href="https://the-platform-three.vercel.app/" target="_blank" rel="noopener noreferrer">
+  <a href="https://youtu.be/hUBLU4JKh_o" target="_blank" rel="noopener noreferrer">
     🎥 Video DEMO
   </a>
  </p>
