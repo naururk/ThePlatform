@@ -5,7 +5,7 @@
 
 const CDN_TRIES = [
   // 1) официальный CDN Zama (основной)
-  "https://cdn.zama.org/relayer-sdk-js/0.3.0-5/relayer-sdk-js.js",
+  "https://cdn.zama.org/relayer-sdk-js/0.3.0-6/relayer-sdk-js.js",
   // 2) jsDelivr (иногда 404 на старых путях — оставляем на всякий случай)
   "https://cdn.jsdelivr.net/npm/@zama-fhe/relayer-sdk@0.2.0/dist/relayer-sdk-js.js",
   // 3) unpkg (у некоторых пользователей ловит CORS — используем как запасной)
